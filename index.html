@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kamerabewegung</title>
+<link rel="stylesheet" href="style.css">
+<script src="ext/gl-matrix.js"></script>
+<script src="GVT_Src_vertexData_torus.js"></script>
+<script src="KAP_Src_tpl.js" defer></script>
+<script id="vertexshader" type="x-shader/x-vertex">
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+uniform mat4 uPMatrix;
+uniform mat4 uMVMatrix;
+uniform vec3 uBaseColor;
+uniform bool uWireframe;
+varying vec4 vColor;
+void main(){
+ gl_Position=uPMatrix*uMVMatrix*vec4(aPosition,1.0);
+ vec3 light=normalize(vec3(0.35,0.85,0.65));
+ float diffuse=0.45+0.55*abs(dot(normalize(aNormal),light));
+ vColor=vec4(uWireframe ? vec3(0.08,0.13,0.22) : uBaseColor*diffuse,1.0);
+}
+</script>
+<script id="fragmentshader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 vColor;
+void main(){gl_FragColor=vColor;}
+</script>
+</head>
+
+<body>
+<header>
+    <p class="eyebrow">Einsendeaufgabe 5</p>
+    <h1>Kamerabewegung</h1>
+    <p>Eine interaktive 3D-Szene mit kreisender Kamera und rekursiv erzeugter Kugel.</p>
+</header>
+
+<main>
+<section class="viewer">
+    <canvas id="canvas" width="960" height="560" aria-label="Interaktive WebGL-Szene"></canvas>
+    <p id="status">Kamera wird initialisiert …</p>
+</section>
+<section class="controls">
+    <div>
+        <h2>Rekursive Kugel</h2>
+        <div class="buttonrow">
+            <button id="minus">−</button>
+            <span id="depth">Rekursionstiefe: 2</span>
+            <button id="plus">+</button>
+        </div>
+        <p id="triangles">128 Dreiecke</p>
+    </div>
+    <div>
+        <h2>Darstellung</h2>
+        <div class="buttonrow">
+            <button id="mode">Drahtgitter: ein</button>
+            <button id="reset">Kamera zurücksetzen</button>
+        </div>
+    </div>
+</section>
+<section class="info">
+    <div>
+        <h2>Bedienung</h2>
+        <table>
+            <tr>
+                <th>Taste</th>
+                <th>Funktion</th>
+            </tr>
+            <tr>
+                <td>← / →</td>
+                <td>Kamera auf Kreisbahn um die Y-Achse bewegen</td>
+            </tr>
+            <tr>
+                <td>↑ / ↓</td>
+                <td>Kamerahöhe verändern</td>
+            </tr>
+            <tr>
+                <td>N</td>
+                <td>Radius verkleinern (näher heran)</td>
+            </tr>
+            <tr>
+                <td>Shift + N</td>
+                <td>Radius vergrößern (weiter weg)</td>
+            </tr>
+            <tr>
+                <td>+ / − Buttons</td>
+                <td>Rekursionstiefe der Kugel (0–5)</td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <h2>Aufbau und Algorithmus</h2>
+        <p>Die Szene enthält einen Torus (aus dem Kursgerüst), einen Kegel und eine rekursive Kugel. Die drei Körper sind dreieckig angeordnet; das feste Bodenraster verdeutlicht die Kamerabewegung. Ausgangsgeometrie der Kugel ist ein Oktaeder mit acht Dreiecken. Jedes Dreieck wird in vier kleinere Dreiecke geteilt. Neue Mittelpunkte werden auf die Einheitskugel normiert. Nach Tiefe d entstehen 8 · 4<sup>d</sup> Dreiecke.</p><p>Die Kameraposition folgt x = r · sin(α), z = r · cos(α); die Höhe y ist separat einstellbar. Die View-Matrix wird mit <code>mat4.lookAt</code> berechnet.</p>
+    </div>
+</section>
+<section class="sources">
+    <h2>Quellen</h2>
+    <p>Vorlesungsmaterial GRU (Grundkörper) und KAP (Kamera und Perspektive), insbesondere KAP_Src_tpl und GVT_Src_vertexData_torus; <a href="https://github.com/toji/gl-matrix">glMatrix</a>; <a href="http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html">Andreas Kahler: Creating an icosphere mesh</a> (weiterführender Vergleich). Die Oktaeder-Rekursion und Kamerainteraktion wurden für diese Aufgabe implementiert.</p>
+</section>
+</main>
+
+</body>
+</html>
